@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SAT Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design tokens ── */
+:root {
+  --ink:      #1a1a1a;
+  --ink-2:    #4a4a4a;
+  --ink-3:    #888;
+  --paper:    #faf9f6;
+  --surface:  #f2f0ea;
+  --rule:     #e0ddd5;
+  --accent:   #1a5c3a;
+  --accent-2: #d4a843;
+  --red:      #8b2020;
+  --red-bg:   #fdf0f0;
+  --green-bg: #f0f7f3;
+  --blue-bg:  #f0f4fb;
+  --blue:     #1a3a6c;
+  --radius:   6px;
+  --radius-lg: 12px;
+  --shadow:   0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05);
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* ── Layout ── */
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: .75rem;
+  margin-bottom: 2.5rem;
+}
+.wordmark {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -.5px;
+  color: var(--ink);
+}
+.wordmark span { color: var(--accent); }
+.tagline {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--ink-3);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* ── Controls panel ── */
+.controls {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+.field label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+select {
+  appearance: none;
+  background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 8px 28px 8px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  width: 100%;
+}
+select:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn-gen {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 22px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+  align-self: flex-end;
+}
+.btn-gen:hover { background: var(--accent); }
+.btn-gen:disabled { background: var(--ink-3); cursor: not-allowed; }
+
+/* ── Scoreboard ── */
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  text-align: center;
+}
+.stat-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+.stat-val { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--ink); }
+
+/* ── Progress ── */
+.progress-wrap { height: 3px; background: var(--rule); border-radius: 2px; margin-bottom: 1.75rem; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s ease; }
+
+/* ── Question card ── */
+.q-card {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--shadow);
+  animation: fadeUp .3s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.q-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; align-items: center; }
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+}
+.b-math    { color: var(--blue);   background: var(--blue-bg); }
+.b-verbal  { color: var(--accent); background: var(--green-bg); }
+.b-easy    { color: #2d6a2d; background: #eaf5ea; }
+.b-medium  { color: #7a5500; background: #fdf5e0; }
+.b-hard    { color: #7a3200; background: #fdf0e6; }
+.b-vhard   { color: var(--red);    background: var(--red-bg); }
+.b-skill   { color: var(--ink-3);  background: var(--surface); border-color: var(--rule); }
+.q-num     { margin-left: auto; font-size: 12px; color: var(--ink-3); font-weight: 300; }
+
+.q-prompt {
+  font-size: 16px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  margin-bottom: 1.5rem;
+  color: var(--ink);
+}
+
+/* ── Choices ── */
+.choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+.choice-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .12s, background .12s;
+  width: 100%;
+  line-height: 1.5;
+}
+.choice-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--green-bg); }
+.choice-btn:disabled { cursor: default; }
+.choice-letter { font-weight: 700; min-width: 16px; flex-shrink: 0; margin-top: 1px; }
+.choice-btn.correct { border-color: #2d6a2d; background: #eaf5ea; color: #1a4a1a; }
+.choice-btn.wrong   { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+.choice-btn.reveal  { border-color: #2d6a2d; background: #eaf5ea; color: #1a4a1a; }
+
+/* ── Explanation ── */
+.explanation {
+  background: var(--blue-bg);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--blue);
+  margin-bottom: 1.5rem;
+  display: none;
+}
+.explanation.show { display: block; }
+.explanation strong { font-weight: 700; display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+
+/* ── Actions ── */
+.actions { display: flex; gap: 8px; justify-content: flex-end; }
+.btn {
+  padding: 8px 18px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.btn:hover { background: var(--surface); border-color: var(--ink-3); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #134d2e; border-color: #134d2e; }
+
+/* ── Loading ── */
+.loading { text-align: center; padding: 4rem 0; }
+.loading-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; }
+.dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: bounce .8s ease-in-out infinite; }
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,80%,100% { transform: scale(.5); opacity:.4; } 40% { transform: scale(1); opacity:1; } }
+.loading p { font-size: 13px; color: var(--ink-3); }
+
+/* ── Empty / Results ── */
+.empty { text-align: center; padding: 4rem 0; }
+.empty h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 400; margin-bottom: .5rem; }
+.empty p { font-size: 14px; color: var(--ink-3); }
+
+.results {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.results-pct {
+  font-family: 'Playfair Display', serif;
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+.results-sub { font-size: 14px; color: var(--ink-3); margin: .5rem 0 2rem; }
+.results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 2rem; text-align: left; }
+.results-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+/* ── Error ── */
+.error-box {
+  background: var(--red-bg);
+  border: 1px solid #e0b0b0;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  color: var(--red);
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="wordmark">SAT<span>Practice</span></div>
+    <div class="tagline">Adaptive Question Generator</div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="field">
+      <label for="sel-section">Section</label>
+      <select id="sel-section">
+        <option value="mixed">Mixed</option>
+        <option value="math">Math</option>
+        <option value="verbal">Verbal</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="sel-count">Questions</label>
+      <select id="sel-count">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="sel-order">Sort by</label>
+      <select id="sel-order">
+        <option value="hardest">Hardest first</option>
+        <option value="easiest">Easiest first</option>
+      </select>
+    </div>
+    <button class="btn-gen" id="gen-btn" onclick="startQuiz()">Generate →</button>
+  </div>
+
+  <!-- Scoreboard (hidden until quiz starts) -->
+  <div class="scoreboard" id="scoreboard" style="display:none">
+    <div class="stat-box">
+      <div class="stat-label">Score</div>
+      <div class="stat-val" id="stat-score">0 / 0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-val" id="stat-acc">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Remaining</div>
+      <div class="stat-val" id="stat-rem">—</div>
+    </div>
+  </div>
+
+  <!-- Quiz area -->
+  <div id="quiz-area">
+    <div class="empty">
+      <h2>Ready to practice?</h2>
+      <p>Choose your settings above and hit Generate.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let questions   = [];
+let currentIdx  = 0;
+let correctCount = 0;
+let answeredSet = new Set();   // indices the user has answered
+
+// ── API call ───────────────────────────────────────────────────────────────
+async function fetchQuestions(section, count, order) {
+  const url = `/api/questions?section=${section}&count=${count}&order=${order}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.questions;
+}
+
+// ── Kick off a quiz ────────────────────────────────────────────────────────
+async function startQuiz() {
+  const section = document.getElementById('sel-section').value;
+  const count   = parseInt(document.getElementById('sel-count').value, 10);
+  const order   = document.getElementById('sel-order').value;
+
+  // Reset state
+  questions    = [];
+  currentIdx   = 0;
+  correctCount = 0;
+  answeredSet.clear();
+
+  document.getElementById('scoreboard').style.display = 'grid';
+  document.getElementById('gen-btn').disabled = true;
+  updateScoreboard(count);
+  showLoading(count);
+
+  try {
+    questions = await fetchQuestions(section, count, order);
+    renderQuestion(0);
+  } catch (err) {
+    document.getElementById('quiz-area').innerHTML =
+      `<div class="error-box"><strong>Error:</strong> ${err.message}</div>`;
+  } finally {
+    document.getElementById('gen-btn').disabled = false;
+  }
+}
+
+// ── Scoreboard ─────────────────────────────────────────────────────────────
+function updateScoreboard(total) {
+  const ans = answeredSet.size;
+  document.getElementById('stat-score').textContent = `${correctCount} / ${ans}`;
+  document.getElementById('stat-acc').textContent   = ans ? Math.round(correctCount / ans * 100) + '%' : '—';
+  document.getElementById('stat-rem').textContent   = total - ans;
+}
+
+// ── Loading state ──────────────────────────────────────────────────────────
+function showLoading(count) {
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="loading">
+      <div class="loading-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <p>Generating ${count} questions…</p>
+    </div>`;
+}
+
+// ── Difficulty badge ───────────────────────────────────────────────────────
+function diffClass(label) {
+  return { Easy:'b-easy', Medium:'b-medium', Hard:'b-hard', 'Very Hard':'b-vhard' }[label] || 'b-easy';
+}
+
+// ── Render a question ──────────────────────────────────────────────────────
+function renderQuestion(idx) {
+  if (idx >= questions.length) { showResults(); return; }
+  currentIdx = idx;
+  const q    = questions[idx];
+  const pct  = (idx / questions.length) * 100;
+
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-fill" style="width:${pct}%"></div>
+    </div>
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="badge ${q.section==='math'?'b-math':'b-verbal'}">${q.section}</span>
+        <span class="badge b-skill">${q.skill}</span>
+        <span class="badge ${diffClass(q.difficulty_label)}">${q.difficulty_label} · ${q.difficulty_score}</span>
+        <span class="q-num">${idx + 1} / ${questions.length}</span>
+      </div>
+      <div class="q-prompt">${escHtml(q.prompt)}</div>
+      <div class="choices" id="choices">
+        ${['A','B','C','D'].map(l => `
+          <button class="choice-btn" id="ch-${l}" data-letter="${l}"
+                  onclick="selectAnswer('${l}',${idx})">
+            <span class="choice-letter">${l}.</span>
+            <span>${escHtml(q.choices[l])}</span>
+          </button>`).join('')}
+      </div>
+      <div class="explanation" id="explanation">
+        <strong>Explanation</strong>${escHtml(q.explanation)}
+      </div>
+      <div class="actions">
+        ${idx > 0 ? `<button class="btn" onclick="renderQuestion(${idx - 1})">← Back</button>` : ''}
+        <button class="btn btn-primary" id="next-btn" style="display:none"
+                onclick="renderQuestion(${idx + 1})">
+          ${idx + 1 < questions.length ? 'Next →' : 'See results →'}
+        </button>
+      </div>
+    </div>`;
+
+  // If already answered, restore state without re-scoring
+  if (answeredSet.has(idx)) restoreAnswered(idx);
+}
+
+// ── Handle answer selection ────────────────────────────────────────────────
+function selectAnswer(letter, idx) {
+  if (answeredSet.has(idx)) return;
+
+  answeredSet.add(idx);
+  const q         = questions[idx];
+  const isCorrect = letter === q.correct_answer;
+  if (isCorrect) correctCount++;
+
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.disabled = true;
+    const l = btn.dataset.letter;
+    if (l === letter && isCorrect)  btn.classList.add('correct');
+    else if (l === letter)           btn.classList.add('wrong');
+    else if (l === q.correct_answer) btn.classList.add('reveal');
+  });
+
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('next-btn').style.display = 'inline-block';
+  updateScoreboard(questions.length);
+}
+
+function restoreAnswered(idx) {
+  document.querySelectorAll('.choice-btn').forEach(btn => { btn.disabled = true; });
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+// ── Results screen ─────────────────────────────────────────────────────────
+function showResults() {
+  const total = questions.length;
+  const pct   = Math.round(correctCount / total * 100);
+  const msg   = pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good effort!' : 'Keep practicing!';
+
+  const avgDiff = Math.round(questions.reduce((s, q) => s + q.difficulty_score, 0) / total);
+  const math    = questions.filter(q => q.section === 'math').length;
+  const verbal  = questions.filter(q => q.section === 'verbal').length;
+
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="results">
+      <div class="results-pct">${pct}%</div>
+      <div class="results-sub">${correctCount} of ${total} correct · ${msg}</div>
+      <div class="results-grid">
+        <div class="stat-box"><div class="stat-label">Math Qs</div><div class="stat-val">${math}</div></div>
+        <div class="stat-box"><div class="stat-label">Verbal Qs</div><div class="stat-val">${verbal}</div></div>
+        <div class="stat-box"><div class="stat-label">Avg difficulty</div><div class="stat-val">${avgDiff}</div></div>
+        <div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-val">${pct}%</div></div>
+      </div>
+      <div class="results-actions">
+        <button class="btn btn-primary" onclick="startQuiz()">New quiz →</button>
+        <button class="btn" onclick="renderQuestion(0)">Review answers</button>
+      </div>
+    </div>`;
+}
+
+// ── Utility ────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
